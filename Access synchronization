@@ -1,0 +1,86 @@
+import threading
+import random
+import time
+
+class Class1:
+    def __init__(self):
+        self.__private_data = 0.0
+
+    def read(self):
+        return self.__private_data
+
+    def write(self, value):
+        self.__private_data = value
+
+class Class2:
+    def __init__(self):
+        self.__private_data = 0.0
+
+    def read(self):
+        return self.__private_data
+
+    def write(self, value):
+        self.__private_data = value
+
+class Thread1(threading.Thread):
+    def __init__(self, c1, c2, k1):
+        threading.Thread.__init__(self)
+        self.c1 = c1
+        self.c2 = c2
+        self.k1 = k1
+
+    def run(self):
+        for i in range(self.k1):
+            c1_data = self.c1.read()
+            c1_data += random.uniform(0.0, 1.0)
+            self.c1.write(c1_data)
+
+            c2_data = self.c2.read()
+            c2_data += random.uniform(0.0, 1.0)
+            self.c2.write(c2_data)
+
+class Thread2(threading.Thread):
+    def __init__(self, c1, c2, k2):
+        threading.Thread.__init__(self)
+        self.c1 = c1
+        self.c2 = c2
+        self.k2 = k2
+
+    def run(self):
+        for i in range(self.k2):
+            c2_data = self.c2.read()
+            c2_data += random.uniform(0.0, 1.0)
+            self.c2.write(c2_data)
+            c1_data = self.c1.read()
+            c1_data += random.uniform(0.0, 1.0)
+            self.c1.write(c1_data)
+
+if __name__ == "__main__":
+    c1 = Class1()
+    c2 = Class2()
+
+    N = random.randint(10, 20)
+    K1 = random.randint(10000, 20000)
+    K2 = random.randint(10000, 20000)
+
+    threads = []
+    for i in range(N//2):
+        threads.append(Thread1(c1, c2, K1))
+
+    for i in range(N//2):
+        threads.append(Thread2(c1, c2, K2))
+
+    start_time = time.time()
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    print("Threads completed")
+    print("Execution time: ", elapsed_time)
+    print("Data of Class 1: ", c1.read())
+    print("Data of Class 2: ", c2.read())
